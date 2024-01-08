@@ -85,7 +85,8 @@ def _run_function(result_dict, func, args, kwargs):
 def timeout_decorator(timeout):
     """Uses multiprocessing to create an arbitrary timeout for a
     function call. This function is used for ensuring a stuck function
-    call does not block the execution of the neuron script"""
+    call does not block the execution of the neuron script
+    """
 
     def decorator(func):
         def wrapper(*args, **kwargs):
