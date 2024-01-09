@@ -52,7 +52,7 @@ class PromptInjectionMiner(BaseNeuron):
         metagraph: 
             An instance of bittensor.metagraph returned from the setup() method.
         miner_uid: 
-            A string representing the unique identifier of the miner in the network returned 
+            An int instance representing the unique identifier of the miner in the network returned 
             from the setup() method.
         hotkey_blacklisted: 
             A boolean flag indicating whether the miner's hotkey is blacklisted. It is initially 
@@ -62,22 +62,38 @@ class PromptInjectionMiner(BaseNeuron):
         setup():
             This function initializes the neuron by registering the configuration.
         blacklist():
-            This method blacklist requests that are not originating from valid validators--insufficient 
-            hotkeys, entities which are not validators & entities with insufficient stake 
+            This method blacklist requests that are not originating from valid 
+            validators--insufficient hotkeys, entities which are not validators & 
+            entities with insufficient stake 
         priority():
-            This function defines the priority based on which the validators are selected. Higher priority 
-            value means the input from the validator is processed faster.
+            This function defines the priority based on which the validators are 
+            selected. Higher priority value means the input from the validator is 
+            processed faster.
         forward():
-            The function is executed once the data from the validator has been deserialized, which means 
-            we can utilize the data to control the behavior of this function.
+            The function is executed once the data from the validator has been 
+            deserialized, which means we can utilize the data to control the behavior 
+            of this function.
         calculate_overall_confidence():
-            This function calculates the overall confidence score for a prompt injection attack.
+            This function calculates the overall confidence score for a prompt 
+            injection attack.
         check_remote_blacklist():
             This function retrieves the remote blacklist (from the url: 
             https://ujetecvbvi.execute-api.eu-west-1.amazonaws.com/default/sn14-blacklist-api)
     """
 
     def __init__(self, parser: ArgumentParser):
+        """
+        Initializes the PromptInjectionMiner class with attributes neuron_config,
+        miner_set_weights, chromadb_client, model, tokenizer, yara_rules, wallet,
+        subtensor, metagraph, miner_uid & hotkey_blacklisted.
+
+        Arguments:
+            parser:
+                An ArgumentParser instance.
+        
+        Returns:
+            None
+        """
         super().__init__(parser=parser, profile="miner")
 
         self.neuron_config = self.config(
@@ -105,7 +121,7 @@ class PromptInjectionMiner(BaseNeuron):
         The setup function initializes the neuron by registering the
         configuration.
 
-        Args:
+        Arguments:
             None
 
         Returns:
@@ -113,14 +129,15 @@ class PromptInjectionMiner(BaseNeuron):
                 An instance of bittensor.wallet containing information about
                 the wallet
             subtensor:
-                An instance of bittensor.subtensor doing ?
+                An instance of bittensor.subtensor
             metagraph:
-                An instance of bittensor.metagraph doing ?
+                An instance of bittensor.metagraph
             miner_uid:
-                An instance of str consisting of the miner UID
+                An instance of int consisting of the miner UID
 
         Raises:
             AttributeError:
+                The AttributeError is raised if wallet, subtensor & metagraph cannot be logged.
         """
 
         bt.logging(config=self.neuron_config, logging_dir=self.neuron_config.full_path)
@@ -165,11 +182,18 @@ class PromptInjectionMiner(BaseNeuron):
         request headers or other data that can be retrieved outside of
         the request data.
 
-        As it currently stats, we want to blacklist requests that are
-        not originating from valid validators.
+        As it currently stands, we want to blacklist requests that are
+        not originating from valid validators. This includes:
+        - unregistered hotkeys 
+        - entities which are not validators 
+        - entities with insufficient stake 
 
-        This function must return [True, ""] for blacklisted requests
-        and [False, ""] for non-blacklisted requests.
+        Returns: 
+            [True, ""] for blacklisted requests where the reason for 
+            blacklisting is contained in the quotes.
+            [False, ""] for non-blacklisted requests, where the quotes 
+            contain a formatted string (f"Hotkey {synapse.dendrite.hotkey} 
+            has insufficient stake: {stake}",)
         """
 
         # Blacklist entities that have not registered their hotkey
@@ -208,6 +232,15 @@ class PromptInjectionMiner(BaseNeuron):
         This function defines the priority based on which the validators
         are selected. Higher priority value means the input from the
         validator is processed faster.
+
+        Inputs:
+            synapse:
+                The synapse should be the LLMDefenderProtocol class 
+                (from llm_defender/base/protocol.py)
+
+        Returns:
+            stake:
+                A float instance of how much TAO is staked.
         """
 
         # Otherwise prioritize validators based on their stake
@@ -221,9 +254,22 @@ class PromptInjectionMiner(BaseNeuron):
         return stake
 
     def forward(self, synapse: LLMDefenderProtocol) -> LLMDefenderProtocol:
-        """The function is executed once the data from the
+        """
+        The function is executed once the data from the
         validator has been deserialized, which means we can utilize the
-        data to control the behavior of this function.
+        data to control the behavior of this function. All confidence 
+        score outputs, alongside other relevant output metadata--subnet_version, 
+        synapse_uuid--are appended to synapse.output.
+
+        Inputs:
+            synapse:
+                The synapse should be the LLMDefenderProtocol class 
+                (from llm_defender/base/protocol.py)
+
+        Returns:
+            synapse:
+                The synapse should be the LLMDefenderProtocol class 
+                (from llm_defender/base/protocol.py)
         """
         if synapse.subnet_version:
             bt.logging.debug(
@@ -291,7 +337,22 @@ class PromptInjectionMiner(BaseNeuron):
         return synapse
     
     def calculate_overall_confidence(self, confidences, weights):
-        """Function to calculate the overall confidence"""
+        """
+        Function to calculate the overall confidence
+        
+        Inputs:
+            confidences:
+                A list containing confidence values (between 0.0 and 1.0)
+            weights:
+                A list containing the weights for each associated confidence value 
+                (the sum of all weights should approximate 1.0 with a tolerance of 0.01)
+        Raises:
+            ValueError:
+                The ValueError is raised if
+                    - The number of confidences & weights do not match
+                    - The confidences are not between 0.0 and 1.0
+                    - The sum of the weights does not approximate 1.0 (with a tolerance of 0.01)
+        """
         if len(confidences) != len(weights):
             raise ValueError("Number of confidences and weights should match")
         
