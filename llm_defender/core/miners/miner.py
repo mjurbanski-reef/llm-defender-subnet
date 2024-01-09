@@ -372,7 +372,24 @@ class PromptInjectionMiner(BaseNeuron):
         return overall_score
 
     def check_remote_blacklist(self):
-        """Retrieves the remote blacklist"""
+        """
+        Retrieves the remote blacklist & updates the hotkey_blacklisted 
+        attribute.
+        
+        Arguments:
+            None
+        
+        Returns:
+            None
+
+        Raises:
+            requests.exceptions.JSONDecodeError:
+                requests.exceptions.JSONDecodeError is raised if the response 
+                could not be read from the blacklist API.
+            requests.exceptions.ConnectionError:
+                requests.exceptions.ConnectionError is raised if the function is 
+                unable to connect to the blacklist API.
+        """
 
         blacklist_api_url = "https://ujetecvbvi.execute-api.eu-west-1.amazonaws.com/default/sn14-blacklist-api"
 

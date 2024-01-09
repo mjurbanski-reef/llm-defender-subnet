@@ -16,6 +16,26 @@ from llm_defender import __version__ as version
 def main(validator: PromptInjectionValidator):
     """
     This function executes the main function for the validator.
+
+    Arguments:
+        validator:
+            An instance of PromptInjectionValidator.  
+
+    Returns:
+        None
+    
+    Raises:
+        TimeoutError:
+            TimeoutError is raised if the metagraph sync timed out, 
+            or if the process of setting weights timed out.
+        RuntimeError:
+            RuntimeError is raised if an unexpected error is encountered.
+        KeyboardInterrupt:
+            KeyboardInterrupt is raised if the user interrupts the program. 
+            The function will then proceed to gracefully exit its operations.
+        Exception:
+            Exception is raised if the function's overarching try/except 
+            syntax fails.
     """
 
     # Step 7: The Main Validation Loop
@@ -205,6 +225,21 @@ def main(validator: PromptInjectionValidator):
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
+    """
+    Argparse arguments:
+        --alpha:
+            A float instance describing the weight moving average scoring. 
+            Default is set to 0.9.
+        --netuid:
+            An int instance describing the chain subnet uid. Default is 14.
+            Note that this input should not be changed. 
+        --load_state:
+            A bool instance, default True. Setting this value to False clears 
+            the old state.
+        --max-targets:
+            An int instance which sets the value for the number of targets 
+            to query at once, default 64.    
+    """
     # Parse command line arguments
     parser = ArgumentParser()
     parser.add_argument(

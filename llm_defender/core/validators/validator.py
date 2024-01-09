@@ -31,10 +31,170 @@ class PromptInjectionValidator(BaseNeuron):
     Class description
 
     Attributes:
+        parser:
+            Instance of ArgumentParser with the arguments given as command-line 
+            arguments in the execution script.
 
+            This attribute comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        profile:
+            Instance of str depicting the profile for the neuron.
+
+            This attribute comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        step:
+            Set to 0 when __init__() is executed.
+
+            This attribute comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        last_updated_block:
+            Set to 0 when __init__() is executed. 
+
+            This attribute comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        base_path:
+            Formatted such that the base_path is the user's home directory 
+            with '/.llm-defender-subnet' appended at the end when __init__() 
+            is executed. 
+
+            This attribute comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        subnet_version:
+            This is automatically filled in as __spec_version__, which is 
+            imported from llm_defender. 
+
+            This attribute comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        max_engines:
+            An int instance describing the maximum number of engines that 
+            can be used. Set to 3.
+        timeout:    
+            An int instance describing the number of seconds before a timeout 
+            error is issued. Set to 12.
+        neuron_config:
+            Configuration settings for the neuron. Set to None during the 
+            __init__() call, then updated to an instance of bt.config when the 
+            apply_config() method is called.
+        wallet:
+            Wallet information for transactions. Set to None during the 
+            __init__() call, then updated to an instance of bt.wallet when the 
+            setup_bittensor_objects() method is called.
+        subtensor:
+            Represents the network subtensor. Set to None during the __init__() 
+            call, then updated to an instance of bt.subtensor when the 
+            setup_bittensor_objects() method is called.
+        dendrite:
+            Dendrite component of the validator neuron. Set to None during the 
+            __init__() call, then updated to an instance of bt.dendrite when the 
+            setup_bittensor_objects() method is called. 
+        metagraph:
+            The network metagraph. Set to None during the __init__() call, then 
+            updated to an instance of bt.metagraph when the setup_bittensor_objects() 
+            method is called.
+        scores:
+            Scores assigned to different processes. Set to None during the __init__() 
+            call, then updated to an instance of torch.tensor when the initialize_neuron() 
+            method is called.
+        hotkeys:
+            Miner hotkeys. Set to None during the __init__() call, then updated to 
+            an instance of iterable when the setup_bittensor_objects() method is called.
+        miner_responses:
+            Responses recieved from miners. Set to None during the __init__() call, 
+            then updated to an instance of iterable instance where each element must 
+            be a dict instance containing flag 'engine_data'.
+
+            Each value associated with the 'engine_data' key must itself be a dict 
+            instance containing the flags 'name' and 'data'. The 'name' flag should 
+            have a value that is a str instance displaying the name of the specific 
+            engine, and the 'data' flag should have a value that contains the engine 
+            outputs. This update happens when the load_miner_state() method is called.
+        max_targets:
+            Maximum number of targets to process. Set to None during the __init__() 
+            call, then updated to an instance of int when the initialize_neuron() 
+            method is called.
+        target_group:
+            Groupings of targets for processing. Set to None during the __init__() 
+            call, then updated to an instance of int (value 0) when the 
+            initialize_neuron method is called.
+        blacklisted_miner_hotkeys:
+            A list of blacklisted miner hotkeys. Set to None during the __init__() 
+            call, then updated to an instance of iterable when the load_state() method 
+            is called.
+
+    Methods:
+        __init__():
+            Initializes the PromptInjectionValidator with the initial values for the 
+            max_engines, timeout, neuron_config, wallet, subtensor, dendrite, metagraph, 
+            scores, hotkeys, miner_responses, max_targets, target_group, and 
+            blacklisted_miner_hotkeys attributes. 
+        config():
+            This function attaches the configuration parameters to the necessary bittensor 
+            classes and initializes the logging for the neuron.
+
+            This method comes from the BaseNeuron object, located at 
+            llm_defender/base/neuron.py
+        apply_config():
+            This method applies the configuration to specified bittensor classes
+        validator_validation():
+            This method validates that the validator has registered correctly.
+        setup_bittensor_objects():
+            Setups the bittensor objects: wallet, subtensor, dendrite & metagraph.
+        initialize_neuron():
+            This function initializes the neuron by registering the configuration.
+        _parse_args():
+            This function parses args from argparser. 
+        process_responses():
+            This function processes the responses received from the miners.
+        calculate_score():
+            This function sets the score based on the response.
+        apply_penalty():
+            Applies a penalty score based on the response and previous responses received 
+            from the miner.
+        serve_prompt():
+            This function selects a random prompt from the dataset to be served for the 
+            miners connected 
+            to the subnet.
+        check_hotkeys():
+            Checks if some hotkeys have been replaced in the metagraph.
+        save_miner_state():
+            Saves the miner state to a file.
+        load_miner_state():
+            Loads the miner state from a file
+        truncate_miner_state():
+            Truncates the local miner state
+        save_state():
+            Saves the state of the validator to a file.
+        load_state():   
+            Loads the state of the validator from a file.
+        sync_metagraph():
+            Syncs the metagraph.
+        set_weights():
+            Sets the weights for the subnet.
+        _get_local_miner_blacklist():
+            Returns the blacklisted miners hotkeys from the local file.
+        _get_remote_miner_blacklist():
+            Retrieves the remote blacklist from the url: 
+            https://ujetecvbvi.execute-api.eu-west-1.amazonaws.com/default/sn14-blacklist-api
+        check_blacklisted_miner_hotkeys():
+            Combines local and remote miner blacklists and returns list of hotkeys.
+        get_uids_to_query():
+            Returns the list of UIDs to query.
     """
 
     def __init__(self, parser: ArgumentParser):
+        """
+        Initializes the PromptInjectionValidator with the initial values for the 
+        max_engines, timeout, neuron_config, wallet, subtensor, dendrite, metagraph, 
+        scores, hotkeys, miner_responses, max_targets, target_group, and 
+        blacklisted_miner_hotkeys attributes. 
+
+        Arguments:
+            parser:
+                An instance of ArgumentParser.
+
+        Returns:
+            None
+        """
         super().__init__(parser=parser, profile="validator")
 
         self.max_engines = 3
@@ -52,7 +212,27 @@ class PromptInjectionValidator(BaseNeuron):
         self.blacklisted_miner_hotkeys = None
 
     def apply_config(self, bt_classes) -> bool:
-        """This method applies the configuration to specified bittensor classes"""
+        """
+        This method applies the configuration to specified bittensor classes
+        
+        Arguments:
+            bt_classes:
+                A list of Bittensor classes the apply the configuration
+                to
+
+        Raises:
+            AttributeError:
+                The AttributeError is raised if the validator configuration was unable 
+                to be applied.
+            OSError:
+                The OSError is raised if the logging directory was unable to be created.
+
+        Returns:
+            True:
+                if no errors were raised & the operation was successful.
+            None:
+                if an error was raised.
+        """
         try:
             self.neuron_config = self.config(bt_classes=bt_classes)
         except AttributeError as e:
@@ -65,7 +245,23 @@ class PromptInjectionValidator(BaseNeuron):
         return True
 
     def validator_validation(self, metagraph, wallet, subtensor) -> bool:
-        """This method validates the validator has registered correctly"""
+        """
+        This method validates the validator has registered correctly
+        
+        Arguments:
+            metagraph:
+                An instance of bt.metagraph
+            wallet:
+                An instance of bt.wallet
+            subtensor:
+                An instance of bt.subtensor
+
+        Returns:
+            Bool:
+                True is returned if the operation was successful and False is 
+                returned if the validator is not registered to the chain 
+                connection.
+        """
         if wallet.hotkey.ss58_address not in metagraph.hotkeys:
             bt.logging.error(
                 f"Your validator: {wallet} is not registered to chain connection: {subtensor}. Run btcli register and try again"
@@ -77,7 +273,30 @@ class PromptInjectionValidator(BaseNeuron):
     def setup_bittensor_objects(
         self, neuron_config
     ) -> Tuple[bt.wallet, bt.subtensor, bt.dendrite, bt.metagraph]:
-        """Setups the bittensor objects"""
+        """
+        Setups the bittensor objects: wallet, subtensor, dendrite & metagraph.
+        
+        Arguments:
+            neuron_config:
+                A bt.config instance
+
+        Raises:
+            AttributeError:
+                The AttributeError is raised if the bittensor objects were 
+                unable to be set up.
+        
+        Returns:
+            Tuple:
+                This tuple should have the following elements (in this order):
+                    wallet:
+                        A bt.wallet instance.
+                    subtensor:
+                        A bt.subtensor instance.
+                    dendrite:
+                        A bt.dendrite instance.
+                    metagraph:
+                        A bt.metagraph instance.
+        """
         try:
             wallet = bt.wallet(config=neuron_config)
             subtensor = bt.subtensor(config=neuron_config)
@@ -92,9 +311,8 @@ class PromptInjectionValidator(BaseNeuron):
         return wallet, subtensor, dendrite, metagraph
 
     def initialize_neuron(self) -> bool:
-        """This function initializes the neuron.
-
-        The setup function initializes the neuron by registering the
+        """
+        This function initializes the neuron by registering the 
         configuration.
 
         Args:
@@ -102,12 +320,16 @@ class PromptInjectionValidator(BaseNeuron):
 
         Returns:
             Bool:
-                A boolean value indicating success/failure of the initialization.
+                A boolean value indicating success/failure of the 
+                initialization.
+
         Raises:
             AttributeError:
-                AttributeError is raised if the neuron initialization failed
+                AttributeError is raised if the neuron initialization 
+                failed
             IndexError:
-                IndexError is raised if the hotkey cannot be found from the metagraph
+                IndexError is raised if the hotkey cannot be found from 
+                the metagraph
         """
         bt.logging(config=self.neuron_config, logging_dir=self.neuron_config.full_path)
         bt.logging.info(
@@ -158,6 +380,16 @@ class PromptInjectionValidator(BaseNeuron):
         return True
 
     def _parse_args(self, parser):
+        """
+        This function parses args from argparser. 
+
+        Arguments:
+            parser:
+                A parser object.
+
+        Returns:
+            An argparse.Namespace instance.
+        """
         return parser.parse_args()
     
     def process_responses(
@@ -169,6 +401,73 @@ class PromptInjectionValidator(BaseNeuron):
     ) -> list:
         """
         This function processes the responses received from the miners.
+        
+        Arguments:
+            processed_uids:
+                A torch.tensor instance containing the miner uid's. This 
+                should be a one-dimensional tensor 
+            query:
+                A dict instance which must contain the flag 'data', with the 
+                associated value itself being a dict intance that must contain 
+                the flag 'isPromptInjection'.
+            responses:
+                A list instance where each element indicates a response from 
+                a unique miner, which is itself a dict instance which must 
+                contain the flag 'output'. 
+                
+                The associated value for the 'output' flag in each dict element 
+                is itself a dict instance, which must at minimum contain the 
+                flags 'prompt', 'confidence', 'engines', 'synapse_uuid',
+                and 'subnet_version' for the logic to function as intended. 
+            synapse_uuid:
+                A str instance representing the unique user id for the synapse.
+
+        Returns:
+            response_data:
+                A list instance where each element is a dict instance that 
+                contains the processed response data for a single miner. 
+                
+                The flags present are:
+                    "UID":
+                        An instance of str.
+                    "hotkey":
+                        An instance of str.
+                    "target":
+                        An instance of str.
+                    "original_prompt":
+                        An instance of str.
+                    "synapse_uuid":
+                        An instance of str.
+                    "response":
+                        An instance of dict containing a miner response. It 
+                        contains the flags 'prompt', 'confidence', 'engines', 
+                        'synapse_uuid' & 'subnet_version' 
+                    "engine_scores":
+                        The "engine_scores" flag must have an associated dict 
+                        instance which itself contains flags:
+                            "distance_score":
+                                An instance of float.
+                            "speed_score":
+                                An instance of float.
+                            "engine_score":
+                                An instance of float.
+                            "distance_penalty_multiplier":
+                                An instance of float.
+                            "general_penalty_multiplier":
+                                An instance of float.
+                            "response_score":
+                                An instance of float.
+                    "weight_scores":
+                        The "weight_scores" flag must have an associated dict 
+                        instance which itself contains flags:
+                            "new":
+                                An instance of float.
+                            "old":
+                                An instance of float.
+                            "change":
+                                An instance of float.
+                    "engine_data":
+                        An instance of list containing the data for each individual engine.
         """
         
         if not synapse_uuid:
@@ -319,11 +618,25 @@ class PromptInjectionValidator(BaseNeuron):
     def calculate_score(
         self, response, target: float, prompt: str, response_time: float, hotkey: str
     ) -> float:
-        """This function sets the score based on the response.
+        """
+        This function sets the score based on the response.
+
+        Arguments:
+            response:
+                A dict instance, which must at minimum contain the flags 'prompt', 'confidence', 
+                'engines', 'synapse_uuid', and 'subnet_version' for the logic to function as intended. 
+            target:
+                A float instance.
+            prompt:
+                A str instance depciting a prompt.
+            response_time:
+                A float instance depicting the time it took for a miner to respond to a request.
+            hotkey:
+                A str instance depicting a hotkey for a miner.
 
         Returns:
-            score: An instance of float depicting the score for the
-            response
+            score: 
+                An instance of float depicting the score for the response
         """
 
         # Validate the engine responses contain the correct fields
@@ -421,6 +734,28 @@ class PromptInjectionValidator(BaseNeuron):
         """
         Applies a penalty score based on the response and previous
         responses received from the miner.
+
+        Arguments:
+            response:
+                A dict instance, which must at minimum contain the flags 
+                'prompt', 'confidence', 'engines', 'synapse_uuid', and 
+                'subnet_version' for the logic to function as intended. 
+            hotkey:
+                A str instance which describes a wallet hotkey.
+            prompt:
+                A str instance which describes a prompt.
+
+        Returns:
+            tuple:
+                A tuple consisting of three elements--each of which is a 
+                float instance of a penalty score--displayed in this order:
+
+                1. The penalty from the similarity.py penalties. 
+                    (llm_defender/core/validators/penalty/similarity.py)
+                2. The penalty from the base.py penalties. 
+                    (llm_defender/core/validators/penalty/base.py)
+                3. The penalty from the duplicate.py penalties. 
+                    (llm_defender/core/validators/penalty/duplicate.py)
         """
 
         # If hotkey is not found from list of responses, penalties
@@ -451,7 +786,8 @@ class PromptInjectionValidator(BaseNeuron):
         return similarity, base, duplicate
 
     def serve_prompt(self) -> EnginePrompt:
-        """Generates a prompt to serve to a miner
+        """
+        Generates a prompt to serve to a miner
 
         This function selects a random prompt from the dataset to be
         served for the miners connected to the subnet.
@@ -474,7 +810,16 @@ class PromptInjectionValidator(BaseNeuron):
         return prompt
 
     def check_hotkeys(self):
-        """Checks if some hotkeys have been replaced in the metagraph"""
+        """
+        Checks if some hotkeys have been replaced in the metagraph. 
+        If a new hotkey is detected, the score will be reset to 0.0.
+
+        Arguments:
+            None
+        
+        Returns:
+            None
+        """
         if self.hotkeys:
             # Check if known state len matches with current metagraph hotkey length
             if len(self.hotkeys) == len(self.metagraph.hotkeys):
@@ -502,14 +847,30 @@ class PromptInjectionValidator(BaseNeuron):
             self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
     def save_miner_state(self):
-        """Saves the miner state to a file."""
+        """
+        Saves the miner state to a file located at path base_path/miners.pickle
+
+        Arguments:
+            None
+
+        Returns:
+            None
+        """
         with open(f"{self.base_path}/miners.pickle", "wb") as pickle_file:
             pickle.dump(self.miner_responses, pickle_file)
 
         bt.logging.debug("Saved miner states to a file")
 
     def load_miner_state(self):
-        """Loads the miner state from a file"""
+        """
+        Loads the miner state from a file
+
+        Arguments:
+            None
+
+        Returns:
+            None
+        """
         state_path = f"{self.base_path}/miners.pickle"
         if path.exists(state_path):
             with open(state_path, "rb") as pickle_file:
@@ -518,7 +879,15 @@ class PromptInjectionValidator(BaseNeuron):
             bt.logging.debug("Loaded miner state from a file")
 
     def truncate_miner_state(self):
-        """Truncates the local miner state"""
+        """
+        Truncates the local miner state
+
+        Arguments:
+            None
+
+        Returns:
+            None
+        """
 
         if self.miner_responses:
             old_size = getsizeof(self.miner_responses) + sum(
@@ -533,7 +902,16 @@ class PromptInjectionValidator(BaseNeuron):
             )
 
     def save_state(self):
-        """Saves the state of the validator to a file."""
+        """
+        Saves the state of the validator to a file.
+        
+
+        Arguments:
+            None
+
+        Returns:
+            None
+        """
         bt.logging.info("Saving validator state.")
 
         # Save the state of the validator to file.
@@ -553,7 +931,16 @@ class PromptInjectionValidator(BaseNeuron):
         )
 
     def load_state(self):
-        """Loads the state of the validator from a file."""
+        """
+        Loads the state of the validator from a file.
+        
+
+        Arguments:
+            None
+
+        Returns:
+            None
+        """
 
         # Load the state of the validator from file.
         state_path = self.base_path + "/state.pt"
@@ -577,7 +964,19 @@ class PromptInjectionValidator(BaseNeuron):
     
     @timeout_decorator(timeout=30)
     def sync_metagraph(self, metagraph, subtensor):
-        """Syncs the metagraph"""
+        """
+        Syncs the metagraph
+        
+        Arguments:  
+            metagraph:
+                A bt.metagraph instance.
+            subtensor:
+                A bt.subtensor instance.
+
+        Returns:
+            metagraph:
+                A bt.metagraph instance.
+        """
 
         bt.logging.debug(
             f"Syncing metagraph: {self.metagraph} with subtensor: {self.subtensor}"
@@ -590,7 +989,16 @@ class PromptInjectionValidator(BaseNeuron):
 
     @timeout_decorator(timeout=30)
     def set_weights(self):
-        """Sets the weights for the subnet"""
+        """
+        Sets the weights for the subnet
+        
+
+        Arguments:
+            None
+
+        Returns:
+            None
+        """
 
         weights = torch.nn.functional.normalize(self.scores, p=1.0, dim=0)
         bt.logging.info(f"Setting weights: {weights}")
@@ -614,7 +1022,18 @@ class PromptInjectionValidator(BaseNeuron):
             bt.logging.error("Failed to set weights.")
 
     def _get_local_miner_blacklist(self) -> list:
-        """Returns the blacklisted miners hotkeys from the local file."""
+        """
+        Returns the blacklisted miners hotkeys from the local file.
+        
+
+        Arguments:
+            None
+
+        Returns:
+            miner_blacklist:
+                A list instance where each element is a dict instance describing a miner 
+                that has been blacklisted.  
+        """
 
         # Check if local blacklist exists
         blacklist_file = f"{self.base_path}/miner_blacklist.json"
@@ -645,7 +1064,17 @@ class PromptInjectionValidator(BaseNeuron):
         return []
 
     def _get_remote_miner_blacklist(self) -> list:
-        """Retrieves the remote blacklist"""
+        """
+        Retrieves the remote blacklist
+        
+        Arguments:
+            None
+
+        Returns:
+            miner_blacklist:
+                A list instance where each element is a dict instance describing a miner 
+                that has been blacklisted.    
+        """
 
         blacklist_api_url = "https://ujetecvbvi.execute-api.eu-west-1.amazonaws.com/default/sn14-blacklist-api"
 
@@ -675,7 +1104,17 @@ class PromptInjectionValidator(BaseNeuron):
         return []
 
     def check_blacklisted_miner_hotkeys(self):
-        """Combines local and remote miner blacklists and returns list of hotkeys"""
+        """
+        Combines local and remote miner blacklists and returns list of hotkeys
+
+        Arguments:
+            None
+
+        Returns:
+            list:
+                This list has elements which are each str instances representing unique hotkeys
+                of miners which have been blacklisted.
+        """
 
         miner_blacklist = (
             self._get_local_miner_blacklist() + self._get_remote_miner_blacklist()
@@ -686,7 +1125,22 @@ class PromptInjectionValidator(BaseNeuron):
         ]
 
     def get_uids_to_query(self, all_axons) -> list:
-        """Returns the list of UIDs to query"""
+        """
+        Returns the list of UIDs to query
+        
+        Arguments:
+            all_axons:
+                An iterable instance, where each element is a dict describing a single axon. Each
+                dict instance must have the flag 'hotkey'.
+
+        Returns:
+            list:
+                The elements of this outputted list are, in this order:
+                -> uids_to_query
+                -> list_of_uids
+                -> blacklisted_uid
+                -> uids_not_to_query 
+        """
 
         # Get UIDs with a positive stake
         uids_with_stake = self.metagraph.total_stake >= 0.0

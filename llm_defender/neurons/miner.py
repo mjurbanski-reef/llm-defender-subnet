@@ -15,6 +15,22 @@ def main(miner: PromptInjectionMiner):
     This function executes the main miner loop. The miner is configured
     upon the initialization of the miner. If you want to change the
     miner configuration, please adjust the initialization parameters.
+
+    
+    Arguments:
+        miner:
+            A PromptInjectionMiner instance.
+
+    Returns:   
+        None
+
+    Raises:
+        KeyboardInterrupt:
+            KeyboardInterrupt is raised if the miner is killed by keyboard 
+            interrupt.
+        Exception:
+            Exception is raised if the function's overarching try/except 
+            syntax fails.
     """
 
     # Link the miner to the Axon
@@ -122,6 +138,19 @@ def main(miner: PromptInjectionMiner):
 
 # This is the main function, which runs the miner.
 if __name__ == "__main__":
+    """
+    Argparse arguments:
+        --netuid:
+            An int instance describing the chain subnet uid. Default is 14.
+            
+            Note that this input should not be changed. 
+        --logging.logging_dir:
+            A str instance that provides the log directory. Default is 
+            "/var/log/bittensor"
+        --miner_set_weights:
+            A str instance that determines if the miner should set weights 
+            or not. Default True.
+    """
     # Parse command line arguments
     parser = ArgumentParser()
     parser.add_argument("--netuid", type=int, default=14, help="The chain subnet uid")
