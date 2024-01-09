@@ -11,6 +11,38 @@ class LLMDefenderProtocol(bt.Synapse):
     The protocol is a simple request-response communication protocol in
     which the validator sends a request to the miner for processing
     activities.
+
+    The LLMDefenderProtocol class inherits the bittensor.Synapse 
+    object; more information on its specific functionalities can be found 
+    on the official Bittensor docs through the link:
+
+    https://docs.bittensor.com/learn/bittensor-building-blocks#synapse
+
+    Attributes:
+        prompt (optional):
+            A str instance displaying a prompt.
+        engine (optional):
+            A str instance displaying an engine.
+        output (optional):
+            A dict instance displaying outputs.
+        synapse_uuid:
+            An immutable str instance which represents the unique identifier 
+            of the synapse.
+        subnet_version:
+            An immutable int instance which represents the version of the 
+            subnet.
+        roles:
+            An instance of an immutable list of strings defining the roles 
+            with a specific regex pattern denoted by regex=r"^(internal|external)$"
+        analyzer:
+            An instance of an immutable list of strings depicting the analyzers 
+            to be executed, with the specific regex pattern denoted by 
+            regex=r"^(Prompt Injection)$".
+    Methods:
+        get_analyzers(): 
+            Returns the analyzers associated with the synapse in list form.
+        deserialize():
+            Deserializes the instance of the protocol.
     """
 
     # Parse variables
@@ -47,10 +79,29 @@ class LLMDefenderProtocol(bt.Synapse):
     )
 
     def get_analyzers(self) -> list:
-        """Returns the analyzers associated with the synapse"""
+        """
+        Returns the analyzers associated with the synapse.
+
+        Arguments:
+            None
+        
+        Returns:
+            analyzer:
+                An instance of an immutable list of strings depicting the analyzers 
+                to be executed, with the specific regex pattern denoted by 
+                regex=r"^(Prompt Injection)$".
+        """
 
         return self.analyzer
 
     def deserialize(self) -> bt.Synapse:
-        """Deserialize the instance of the protocol"""
+        """
+        Deserialize the instance of the protocol
+        
+        Arguments:
+            None
+            
+        Returns:
+            A bt.synapse instance. 
+        """
         return self

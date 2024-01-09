@@ -21,12 +21,60 @@ from llm_defender.core.miners.engines.prompt_injection.vector_search import Vect
 from llm_defender.base.utils import validate_miner_blacklist
 
 class PromptInjectionMiner(BaseNeuron):
-    """Summary of the class
+    """PromptInjectionMiner class for LLM Defender Subnet
 
-    Class description
+    The PromptInjectionMiner class contains all of the code for a Miner neuron 
+    to generate a confidence score for a Prompt Injection Attack.
 
     Attributes:
+        neuron_config: 
+            This attribute holds the configuration settings for the neuron: 
+            bt.subtensor, bt.wallet, bt.logging & bt.axon
+        miner_set_weights: 
+            A boolean attribute that determines whether the miner sets weights. 
+            This is set based on the command-line argument args.miner_set_weights.
+        chromadb_client: 
+            Stores the 'clint' output from VectorEngine.initialize() This is from: 
+            llm_defender/core/miners/engines/prompt_injection/vector_search.py
+        model: 
+            Stores the 'model' output for an engine.
+        tokenizer: 
+            Stores the 'tokenized' output for an engine.
+        yara_rules: 
+            Stores the 'rules' output of YaraEngine.initialize() This is only when using 
+            the YaraEngine, located at:
 
+            llm_defender/core/miners/engines/prompt_injection/yara.py
+        wallet: 
+            Represents an instance of bittensor.wallet returned from the setup() method.
+        subtensor: 
+            An instance of bittensor.subtensor returned from the setup() method.
+        metagraph: 
+            An instance of bittensor.metagraph returned from the setup() method.
+        miner_uid: 
+            A string representing the unique identifier of the miner in the network returned 
+            from the setup() method.
+        hotkey_blacklisted: 
+            A boolean flag indicating whether the miner's hotkey is blacklisted. It is initially 
+            set to False and may be updated by the check_remote_blacklist() method.
+        
+    Methods:
+        setup():
+            This function initializes the neuron by registering the configuration.
+        blacklist():
+            This method blacklist requests that are not originating from valid validators--insufficient 
+            hotkeys, entities which are not validators & entities with insufficient stake 
+        priority():
+            This function defines the priority based on which the validators are selected. Higher priority 
+            value means the input from the validator is processed faster.
+        forward():
+            The function is executed once the data from the validator has been deserialized, which means 
+            we can utilize the data to control the behavior of this function.
+        calculate_overall_confidence():
+            This function calculates the overall confidence score for a prompt injection attack.
+        check_remote_blacklist():
+            This function retrieves the remote blacklist (from the url: 
+            https://ujetecvbvi.execute-api.eu-west-1.amazonaws.com/default/sn14-blacklist-api)
     """
 
     def __init__(self, parser: ArgumentParser):

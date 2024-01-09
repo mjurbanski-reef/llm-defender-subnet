@@ -16,9 +16,11 @@ from llm_defender import __spec_version__ as subnet_version
 
 
 class BaseNeuron:
-    """Summary of the class
+    """
+    BaseNeuron for llm-defender-subnet.
 
-    Class description
+    This class is the BaseNeuron that should be used by the specialized 
+    neurons (miners/validators) used within the LLM Defender Subnet. 
 
     Attributes:
         parser:
@@ -26,8 +28,23 @@ class BaseNeuron:
             command-line arguments in the execution script
         profile:
             Instance of str depicting the profile for the neuron
-    """
+        step:
+            Set to 0 when __init__() is executed.
+        last_updated_block:
+            Set to 0 when __init__() is executed. 
+        base_path:
+            Formatted such that the base_path is the user's home 
+            directory with '/.llm-defender-subnet' appended at the 
+            end when __init__() is executed.
+        subnet_version:
+            This is automatically filled in as __spec_version__, 
+            which is imported from llm_defender.
 
+    Methods:
+        config():
+            This function attaches the configuration parameters to the necessary bittensor classes and 
+            initializes the logging for the neuron.
+    """
     def __init__(self, parser: ArgumentParser, profile: str) -> None:
         self.parser = parser
         self.profile = profile

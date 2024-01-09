@@ -58,6 +58,9 @@ class BaseEngine:
             name:
                 A str instance that describes the name of the Engine.
                 Default: 'BaseEngine'
+        
+        Returns:
+            None
         """
         self.prompt = None
         self.confidence = None
