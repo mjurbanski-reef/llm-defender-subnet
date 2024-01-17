@@ -302,6 +302,7 @@ class VaderSentimentEngine(BaseEngine):
 
         if not analyzer:
             raise ValueError("The analyzer is empty.")
+        
         try:
             results = analyzer.polarity_scores(self.prompt)
         except Exception as e:
