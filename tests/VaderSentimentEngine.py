@@ -34,8 +34,6 @@ class TestVaderSentimentEngine:
         expected_output_no_compound = {"outcome": "NoVaderSentiment"}
         assert engine._populate_data(invalid_results) == expected_output_no_compound
 
-        # Additional tests can be added for other scenarios (e.g., negative compound values)
-
     def test_prepare(self):
         engine = VaderSentimentEngine()
 
@@ -61,7 +59,6 @@ class TestVaderSentimentEngine:
             mock_file.assert_called_with(engine.lexicon_path, 'r')
             assert engine.custom_vader_lexicon == {"word": 1.0}
 
-            # You can add more tests to cover exceptions like OSError, FileNotFoundError, etc.
 
     def test_initialize(self):
         engine = VaderSentimentEngine()
@@ -117,7 +114,6 @@ class TestVaderSentimentEngine:
             }
             assert engine.output == expected_output
 
-            # Additional tests can be added to cover different scenarios and edge cases
 
     def __init__(self):
         self.test_calculate_confidence()
