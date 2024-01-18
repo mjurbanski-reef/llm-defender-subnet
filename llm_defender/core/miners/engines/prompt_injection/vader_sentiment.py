@@ -183,12 +183,21 @@ class VaderSentimentEngine(BaseEngine):
                 If the analysis was successful, it will also contain flag 'compound_sentiment_score'
                 containing the compound sentiment value outputted by VADER.
         """
-        # Case that the VADER analysis works and outputs something
+        # Case that results exists as an input
         if results:
-            return {
-                "outcome":"VaderSentiment",
-                "compound_sentiment_score": results["compound"]
-            }
+            # Case that results is a dict instance
+            if isinstance(results, dict):
+                # Case that the keys 'pos', 'neg', 'neu', and 'compound' exists in the results dict
+                if all(key in results for key in ['pos', 'neg', 'neu', 'compound']):
+                    # Case that results['compound'] is either a float or int instance
+                    if isinstance(results['compound'], (float, int)):
+                        # Case that results['compound'] falls between -1.0 and 1.0  
+                        if -1.0 <= results['compound'] <= 1.0:
+                            # Case that the VADER analysis works as intended
+                            return {
+                                "outcome":"VaderSentiment",
+                                "compound_sentiment_score": results["compound"]
+                            }
         # Case that the VADER analysis failed in some way
         return {"outcome":"NoVaderSentiment"}
             
@@ -261,14 +270,22 @@ class VaderSentimentEngine(BaseEngine):
             Exception:
                 An exception is raised if the custom lexicon cannot be integrated within
                 the SentimentIntensityAnalyzer object.
+            ValueError:
+                ValueError is raised if any of the values associated with keys in the 
+                custom_vader_lexicon is out-of-bounds (below -4.0 or above 4.0).
         """
 
         analyzer = SentimentIntensityAnalyzer()
         
         try:
             for key,value in self.custom_vader_lexicon:
-                analyzer.lexicon[key] = value 
-                return analyzer
+                # Make sure that the values in the custom_vader_lexicon are all above -4.0 and below 4.0
+                if value >= -4.0 or value <= 4.0:
+                    analyzer.lexicon[key] = value 
+                # Raise ValueError if this is not the case
+                else:
+                    raise ValueError(f"The value for {key} in the custom_vader_lexicon is out-of-bounds--{value} is either below -4.0 or above 4.0.")
+            return analyzer
         except Exception as e:
             print(f'An error occured: {e}')
 

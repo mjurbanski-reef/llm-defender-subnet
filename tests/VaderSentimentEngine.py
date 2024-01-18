@@ -6,6 +6,7 @@ from llm_defender.core.miners.engines.prompt_injection.vader_sentiment import Va
 class TestVaderSentimentEngine:
 
     def test_calculate_confidence(self):
+        # Tests with default tolerance 
         engine = VaderSentimentEngine()
 
         # Test with valid compound sentiment score
@@ -21,18 +22,85 @@ class TestVaderSentimentEngine:
         with pytest.raises(ValueError):
             engine._calculate_confidence()
 
+        # Test with invalid results
+        engine.output = {'outcome': 'NoVaderSentiment'}
+        assert engine._calculate_confidence() == 0.5
+
+        # Tests with adjusted tolerance
+        engine = VaderSentimentEngine(compound_sentiment_tol=-0.5)
+
+        # Test with compound sentiment score equal to the adjusted tolerance, which should yield 0 (< is used, not <=)
+        engine.output = {'outcome': 'VaderSentiment', 'compound_sentiment_score': -0.5}
+        assert engine._calculate_confidence() == 0.0
+
+        # Test with compound sentiment score below adjusted tolerance
+        engine.output = {'outcome': 'VaderSentiment', 'compound_sentiment_score': -0.51}
+        assert engine._calculate_confidence() == 1.0        
+
+        # Test with compound sentiment score equal to default tolerance (should yield 0.0)
+        engine.output = {'outcome': 'VaderSentiment', 'compound_sentiment_score': -0.0}
+        assert engine._calculate_confidence() == 0.0
+
+        # Test with invalid compound sentiment score
+        engine.output = {'outcome': 'VaderSentiment', 'compound_sentiment_score': -1.5}
+        with pytest.raises(ValueError):
+            engine._calculate_confidence()
+
+        # Test with invalid results
+        engine.output = {'outcome': 'NoVaderSentiment'}
+        assert engine._calculate_confidence() == 0.5
+
     def test_populate_data(self):
         engine = VaderSentimentEngine()
 
         # Test with valid VADER output
-        valid_results = {"compound": 0.8}
-        expected_output = {"outcome": "VaderSentiment", "compound_sentiment_score": 0.8}
-        assert engine._populate_data(valid_results) == expected_output
+        valid_results = [
+                        {"neg": -0.15,"neu": 0.05,"pos": 0.95, "compound": 0.8},
+                        {"neg": -0.15,"neu": 0.05,"pos": 0.95, "compound": -1.0},
+                        {"neg": -0.15,"neu": 0.05,"pos": 0.95, "compound": 1.0},
+                        {"neg": -0.15,"neu": 0.05,"pos": 0.95, "compound": -1},
+                        {"neg": -0.15,"neu": 0.05,"pos": 0.95, "compound": 1},
+                        {"neg": -0.15,"neu": 0.05,"pos": 0.95, "compound": 0},
+                        ]
+        
+        for valres in valid_results:
+            assert engine._populate_data(valres) == {"outcome": "VaderSentiment", "compound_sentiment_score": 0.8}
 
         # Test with VADER output having no 'compound' key
-        invalid_results = {}
-        expected_output_no_compound = {"outcome": "NoVaderSentiment"}
-        assert engine._populate_data(invalid_results) == expected_output_no_compound
+        invalid_results = [
+                          {},
+                          [],
+                          -0.1,
+                          0.1,
+                          0,
+                          -1.0,
+                          1.0,
+                          (),
+                          'foo',
+                          True,
+                          False,
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95},
+                          {"neg": -0.15,"neu": 0.05, 'compound': -0.5},
+                          {"neg": -0.15,"pos": 0.95, 'compound': -0.5},
+                          {"neu": 0.05,"pos": 0.95, 'compound': -0.5},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': 1.5},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': -1.5},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': -2},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': 2},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': 'foo'},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': True},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': False},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': {'compound': -0.3}},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': [0.3]},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': []},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': {}},
+                          {"neg": -0.15,"neu": 0.05,"pos": 0.95, 'compound': ()},
+                          ['neg', 'neu', 'pos', 'compound'],
+                          ('neg', 'neu', 'pos', 'compound')
+                          ]
+        
+        for invres in invalid_results:
+            assert engine._populate_data(invres) == {"outcome": "NoVaderSentiment"}
 
     def test_prepare(self):
         engine = VaderSentimentEngine()
@@ -59,10 +127,22 @@ class TestVaderSentimentEngine:
             mock_file.assert_called_with(engine.lexicon_path, 'r')
             assert engine.custom_vader_lexicon == {"word": 1.0}
 
+            # Test for the case of FileNotFoundError
+            mock_file.side_effect = FileNotFoundError
+            with pytest.raises(FileNotFoundError):
+                engine.prepare()
+
+            # Reset mock for the next test
+            mock_file.side_effect = None
+
+            # Test for the case of json.JSONDecodeError
+            mock_file.return_value = mock.mock_open(read_data='invalid json').return_value
+            with pytest.raises(json.JSONDecodeError):
+                engine.prepare()
 
     def test_initialize(self):
         engine = VaderSentimentEngine()
-        engine.custom_vader_lexicon = {"happy": 2.0, "sad": -2.0}
+        engine.custom_vader_lexicon = {"happy": 2.0, "sad": -2.0, "happier": 4.0, "sadder": -4.0}
 
         with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
             # Configure the mock to return a mock SentimentIntensityAnalyzer instance
@@ -82,6 +162,32 @@ class TestVaderSentimentEngine:
 
             # Assert the method returns an analyzer instance
             assert isinstance(analyzer, SentimentIntensityAnalyzer)
+
+        engine = VaderSentimentEngine()
+        engine.custom_vader_lexicon = {"saddest": -6.6}
+
+        with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
+            # Configure the mock to return a mock SentimentIntensityAnalyzer instance
+            mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+            mock_analyzer.return_value = mock_analyzer_instance
+            
+            # Test to make sure that ValueError is raised from the lexicon value being below bounds
+            with pytest.raises(ValueError):
+                # Execute the initialize method
+                analyzer = engine.initialize()
+
+        engine = VaderSentimentEngine()
+        engine.custom_vader_lexicon = {"happiest": 6.6}
+
+        with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
+            # Configure the mock to return a mock SentimentIntensityAnalyzer instance
+            mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+            mock_analyzer.return_value = mock_analyzer_instance
+
+            # Test to make sure that ValueError is raised from the lexicon value being above bounds
+            with pytest.raises(ValueError):
+                # Execute the initialize method
+                analyzer = engine.initialize()
 
     def test_execute(self):
         engine = VaderSentimentEngine(prompt="This is a test prompt.")
@@ -114,12 +220,16 @@ class TestVaderSentimentEngine:
             }
             assert engine.output == expected_output
 
-
     def __init__(self):
+        print("\nNow testing the _calculate_confidence() method:\n")
         self.test_calculate_confidence()
+        print("\nNow testing the _populate_data() method:\n")
         self.test_populate_data()
+        print("\nNow testing the prepare() method:\n")
         self.test_prepare()
+        print("\nNow testing the initialize() method:\n")
         self.test_initialize()
+        print("\nNow testing the execute() method:\n")
         self.test_execute()
 
 def main():
