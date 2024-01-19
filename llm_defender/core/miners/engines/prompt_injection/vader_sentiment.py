@@ -190,7 +190,7 @@ class VaderSentimentEngine(BaseEngine):
                 # Case that the keys 'pos', 'neg', 'neu', and 'compound' exists in the results dict
                 if all(key in results for key in ['pos', 'neg', 'neu', 'compound']):
                     # Case that results['compound'] is either a float or int instance
-                    if isinstance(results['compound'], (float, int)):
+                    if isinstance(results['compound'], (float, int)) and not isinstance(results['compound'], bool):
                         # Case that results['compound'] falls between -1.0 and 1.0  
                         if -1.0 <= results['compound'] <= 1.0:
                             # Case that the VADER analysis works as intended
@@ -289,7 +289,7 @@ class VaderSentimentEngine(BaseEngine):
         except Exception as e:
             print(f'An error occured: {e}')
 
-    def execute(self, analyzer: vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer) -> bool:
+    def execute(self, analyzer: SentimentIntensityAnalyzer) -> bool:
         """
         Generates the SentimentIntensityAnalyzer.polarity_scores() output and the associated
         confidence score for a given prompt being a prompt injection attack.
