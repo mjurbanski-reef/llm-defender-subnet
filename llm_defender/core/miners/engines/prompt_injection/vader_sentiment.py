@@ -244,16 +244,12 @@ class VaderSentimentEngine(BaseEngine):
             # Open and read the JSON file
             with open(self.lexicon_path, 'r') as file:
                 self.custom_vader_lexicon = json.load(file)
-        except FileNotFoundError:
-            print(f"File not found: {self.lexicon_path}")
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON from file: {self.lexicon_path}")
         except Exception as e:
             print(f"An error occurred: {e}")
 
         return True
     
-    def initialize(self):
+    def initialize(self, analyzer_class = SentimentIntensityAnalyzer):
         """
         Initializes the SentimentIntensityAnalyzer object and updates the lexicon
         with the keywords & sentiments found in the custom_vader_lexicon.json file.
@@ -275,19 +271,16 @@ class VaderSentimentEngine(BaseEngine):
                 custom_vader_lexicon is out-of-bounds (below -4.0 or above 4.0).
         """
 
-        analyzer = SentimentIntensityAnalyzer()
+        analyzer = analyzer_class()
         
-        try:
-            for key,value in self.custom_vader_lexicon:
-                # Make sure that the values in the custom_vader_lexicon are all above -4.0 and below 4.0
-                if value >= -4.0 or value <= 4.0:
-                    analyzer.lexicon[key] = value 
-                # Raise ValueError if this is not the case
-                else:
-                    raise ValueError(f"The value for {key} in the custom_vader_lexicon is out-of-bounds--{value} is either below -4.0 or above 4.0.")
-            return analyzer
-        except Exception as e:
-            print(f'An error occured: {e}')
+        for key,value in self.custom_vader_lexicon.items():
+            # Make sure that the values in the custom_vader_lexicon are all above -4.0 and below 4.0
+            if -4.0 <= value <= 4.0:
+                analyzer.lexicon[key] = value 
+            # Raise ValueError if this is not the case
+            else:
+                raise ValueError(f"The value for {key} in the custom_vader_lexicon is out-of-bounds--{value} is either below -4.0 or above 4.0.")
+        return analyzer
 
     def execute(self, analyzer: SentimentIntensityAnalyzer) -> bool:
         """
