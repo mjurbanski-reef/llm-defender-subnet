@@ -228,7 +228,6 @@ class TestVaderSentimentEngine:
             # This assumes your implementation applies each lexicon key-value pair individually
             for key, value in engine.custom_vader_lexicon.items():
                 print(f"Testing that key: {key}, value: {value} in the custom VADER lexicon was applied correctly to the analyzer.")
-                print(mock_analyzer.lexicon)
                 assert mock_lexicon._dict[key] == value
                 print("Test successful.")
             
@@ -242,7 +241,9 @@ class TestVaderSentimentEngine:
 
         with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
             # Configure the mock to return a mock SentimentIntensityAnalyzer instance
+            mock_lexicon = self.create_mock_dictionary(base_dict=SentimentIntensityAnalyzer().lexicon)
             mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+            mock_analyzer_instance.lexicon = mock_lexicon
             mock_analyzer.return_value = mock_analyzer_instance
             
             print("Testing to make sure that ValueError is raised from the lexicon value being below bounds.")
@@ -276,7 +277,7 @@ class TestVaderSentimentEngine:
             mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
 
             # Configure the polarity_scores method to return a predetermined value
-            mock_polarity_scores = {"compound": 0.5}
+            mock_polarity_scores = {"neg": -0.05, "neu":0.01, "pos": 0.56, "compound": 0.5}
             mock_analyzer_instance.polarity_scores.return_value = mock_polarity_scores
 
             # Set the mock analyzer instance to be returned when SentimentIntensityAnalyzer is instantiated
@@ -318,6 +319,6 @@ class TestVaderSentimentEngine:
 
 def main():
     testing_vader = TestVaderSentimentEngine()
-
+    print("ALL TESTS COMPLETE!")
 if __name__ == '__main__':
     main()
