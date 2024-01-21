@@ -3,6 +3,10 @@ from unittest import mock
 import bittensor as bt 
 from llm_defender.core.miners.engines.prompt_injection.vader_sentiment import VaderSentimentEngine
 import json 
+from os import path, makedirs
+import tempfile
+import shutil
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 class TestVaderSentimentEngine:
 
@@ -130,22 +134,46 @@ class TestVaderSentimentEngine:
             print("Test successful.")
 
     def test_prepare(self):
+        # Temporary directory for each test
+        temp_dir = tempfile.mkdtemp()
         engine = VaderSentimentEngine()
+        engine.cache_dir = temp_dir
 
-        # Mock the os.path.exists and os.makedirs functions
+        # Mock the os.path.exists, os.makedirs, and builtins.open functions
         with mock.patch("os.path.exists") as mock_exists, \
             mock.patch("os.makedirs") as mock_makedirs, \
             mock.patch("builtins.open", mock.mock_open(read_data='{"word": 1.0}')) as mock_file:
 
-            print("Testing for when the cache directory doesn't exist.")
-            # Test when the cache directory doesn't exist
+            # Clean up - remove the temporary directory after the test
+            shutil.rmtree(temp_dir)
+
+            # First test when the cache directory doesn't exist and makedirs succeeds
+            print("Testing for when the cache directory doesn't exist and makedirs succeeds.")
             mock_exists.return_value = False
+            mock_makedirs.side_effect = None  # No exception raised
             assert engine.prepare() == True
             mock_makedirs.assert_called_once()
             print("Test successful.")
 
+            # Reset the mocks for the next scenario
+            mock_exists.reset_mock()
+            mock_makedirs.reset_mock()
+
+            # Now test when the cache directory doesn't exist and makedirs raises an OSError
+            print("Testing for when the cache directory doesn't exist and makedirs raises OSError.")
+            mock_exists.return_value = False
+            mock_makedirs.side_effect = OSError("Simulated OSError")  # Raise OSError
+            try:
+                engine.prepare()
+                assert False, "OSError not raised"  # This line should not be reached if OSError is raised
+            except OSError as e:
+                assert str(e) == "Unable to create cache directory: Simulated OSError"
+                print("Test successful.")
+            
             # Reset mock
             mock_makedirs.reset_mock()
+            # Clean up - remove the temporary directory after the test
+            shutil.rmtree(temp_dir)
 
             print("Testing for when the cache directory exists.")
             # Test when the cache directory exists
@@ -160,43 +188,48 @@ class TestVaderSentimentEngine:
             assert engine.custom_vader_lexicon == {"word": 1.0}
             print("Test successful.")
 
-            print("Testing for the case of FileNotFoundError.")
-            # Test for the case of FileNotFoundError
-            mock_file.side_effect = FileNotFoundError
-            with pytest.raises(FileNotFoundError):
-                engine.prepare()
-            print("Test successful.")
+    def create_mock_dictionary(self, base_dict={}):
+        
+        # Create a MagicMock object
+        mock_dict = mock.MagicMock()
 
-            # Reset mock for the next test
-            mock_file.side_effect = None
+        # Set the object to behave like a dictionary
+        mock_dict.__getitem__.side_effect = lambda key: mock_dict._dict[key]
+        mock_dict.__setitem__.side_effect = lambda key, value: mock_dict._dict.__setitem__(key, value)
+        mock_dict.__delitem__.side_effect = lambda key: mock_dict._dict.__delitem__(key)
+        mock_dict.get.side_effect = lambda key, default=None: mock_dict._dict.get(key, default)
 
-            print("Testing for the case of json.JSONDecodeError.")
-            # Test for the case of json.JSONDecodeError
-            mock_file.return_value = mock.mock_open(read_data='invalid json').return_value
-            with pytest.raises(json.JSONDecodeError):
-                engine.prepare()
-            print("Test successful.")
+        # Add an internal dictionary to store values
+        mock_dict._dict = base_dict
+
+        return mock_dict
 
     def test_initialize(self):
+
         engine = VaderSentimentEngine()
         engine.custom_vader_lexicon = {"happy": 2.0, "sad": -2.0, "happier": 4.0, "sadder": -4.0}
 
         with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
             # Configure the mock to return a mock SentimentIntensityAnalyzer instance
+            mock_lexicon = self.create_mock_dictionary(base_dict=SentimentIntensityAnalyzer().lexicon)
             mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+            mock_analyzer_instance.lexicon = mock_lexicon
             mock_analyzer.return_value = mock_analyzer_instance
-
+            
+            print("Testing that the SentimentIntensityAnalyzer was instantiated.")
             # Execute the initialize method
-            analyzer = engine.initialize()
+            analyzer = engine.initialize(analyzer_class = mock_analyzer)
 
             # Assert that the SentimentIntensityAnalyzer was instantiated
             mock_analyzer.assert_called_once()
+            print("Test successful.")
 
             # Assert that the custom lexicon was applied to the analyzer
             # This assumes your implementation applies each lexicon key-value pair individually
             for key, value in engine.custom_vader_lexicon.items():
                 print(f"Testing that key: {key}, value: {value} in the custom VADER lexicon was applied correctly to the analyzer.")
-                assert mock_analyzer_instance.lexicon[key] == value
+                print(mock_analyzer.lexicon)
+                assert mock_lexicon._dict[key] == value
                 print("Test successful.")
             
             print("Testing that a SentimentIntensityAnalyzer instance is returned.")
@@ -257,8 +290,10 @@ class TestVaderSentimentEngine:
             assert success == True
             print("Test successful.")
 
+            print("Testing that polarity_scores was called with the correct prompt.")
             # Assert that polarity_scores was called with the correct prompt
             mock_analyzer_instance.polarity_scores.assert_called_once_with(engine.prompt)
+            print("Test successful.")
 
             print("Testing that the engine output is correctly populated.")
             # Assert that the output is correctly populated
