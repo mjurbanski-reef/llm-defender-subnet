@@ -311,7 +311,7 @@ class VaderSentimentEngine(BaseEngine):
             raise ValueError(f'Input must be a string. The type for the input {self.prompt} is: {type(self.prompt)}')
 
         if not analyzer:
-            raise ValueError("The analyzer is empty.")
+            raise TypeError("The analyzer is empty.")
         
         try:
             results = analyzer.polarity_scores(self.prompt)

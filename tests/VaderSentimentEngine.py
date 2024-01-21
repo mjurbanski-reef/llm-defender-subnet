@@ -303,7 +303,68 @@ class TestVaderSentimentEngine:
                 "compound_sentiment_score": 0.5
             }
             assert engine.output == expected_output
+            print("Test successful.")        
+
+        engine = VaderSentimentEngine(prompt='This is a prompt.')
+
+        # Mock the SentimentIntensityAnalyzer and its polarity_scores method
+        with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
+            # Create a mock instance of SentimentIntensityAnalyzer
+            mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+
+            # Configure the polarity_scores method to return a predetermined value
+            mock_polarity_scores = {"neg": -0.05, "neu":0.01, "pos": 0.56, "compound": 0.5}
+            mock_analyzer_instance.polarity_scores.return_value = mock_polarity_scores
+
+            # Set the mock analyzer instance to be returned when SentimentIntensityAnalyzer is instantiated
+            mock_analyzer.return_value = mock_analyzer_instance
+
+            # Execute the method
+            print("Testing that ValueError is raised if analyzer is not provided in the engine.execute() arguments.")
+            with pytest.raises(TypeError):
+                engine.execute()
             print("Test successful.")
+
+        engine = VaderSentimentEngine(prompt=None)
+
+        # Mock the SentimentIntensityAnalyzer and its polarity_scores method
+        with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
+            # Create a mock instance of SentimentIntensityAnalyzer
+            mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+
+            # Configure the polarity_scores method to return a predetermined value
+            mock_polarity_scores = {"neg": -0.05, "neu":0.01, "pos": 0.56, "compound": 0.5}
+            mock_analyzer_instance.polarity_scores.return_value = mock_polarity_scores
+
+            # Set the mock analyzer instance to be returned when SentimentIntensityAnalyzer is instantiated
+            mock_analyzer.return_value = mock_analyzer_instance
+
+            # Execute the method
+            print("Testing that ValueError is raised if there is no prompt:")
+            with pytest.raises(ValueError):
+                engine.execute(mock_analyzer_instance)  
+            print("Test successful.")
+
+        for bp in [None, False, True, 1, 0, -1, 1.0, -1.0, 0.0, [], {}, ['This is a faulty prompt.'], {'prompt':'This is a faulty prompt.'}]:
+            engine = VaderSentimentEngine(prompt=bp)
+
+            # Mock the SentimentIntensityAnalyzer and its polarity_scores method
+            with mock.patch("vaderSentiment.vaderSentiment.SentimentIntensityAnalyzer") as mock_analyzer:
+                # Create a mock instance of SentimentIntensityAnalyzer
+                mock_analyzer_instance = mock.Mock(spec=SentimentIntensityAnalyzer)
+
+                # Configure the polarity_scores method to return a predetermined value
+                mock_polarity_scores = {"neg": -0.05, "neu":0.01, "pos": 0.56, "compound": 0.5}
+                mock_analyzer_instance.polarity_scores.return_value = mock_polarity_scores
+
+                # Set the mock analyzer instance to be returned when SentimentIntensityAnalyzer is instantiated
+                mock_analyzer.return_value = mock_analyzer_instance
+
+                # Execute the method
+                print(f"Testing for ValueError given faulty prompt input: {bp}")
+                with pytest.raises(ValueError):
+                    engine.execute(mock_analyzer_instance) 
+                print("Test successful.")
 
     def __init__(self):
         print("\nNow testing the _calculate_confidence() method:\n")
