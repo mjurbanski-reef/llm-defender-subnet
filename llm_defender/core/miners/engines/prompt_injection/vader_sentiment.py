@@ -249,7 +249,9 @@ class VaderSentimentEngine(BaseEngine):
         with the keywords & sentiments found in the custom_vader_lexicon.json file.
 
         Arguments:
-            None
+            analyzer_class:
+                The class used to make the analyzer. This is only relevant for testing
+                with mock objects & should not be changed.
 
         Returns:
             analyzer:
