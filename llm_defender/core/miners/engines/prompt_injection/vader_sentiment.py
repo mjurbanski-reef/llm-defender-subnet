@@ -61,7 +61,8 @@ class VaderSentimentEngine(BaseEngine):
         cache_dir:
             An instance of str depicting the cache directory allocated for the engine.
         lexicon_path:
-            An instance of str depicting the 
+            An instance of str depicting the path for the custom_vader_lexicon.json file
+            used to insert custom words & associated sentiment values into the VADER lexicon.
         output: 
             A dict instance which represents the output of the VADER sentiment analysis 
             for a prompt injection attack. This attribute will always have the  flag 'outcome', 
@@ -221,13 +222,6 @@ class VaderSentimentEngine(BaseEngine):
             OSError:
                 The OSError is raised if a cache directory cannot be created from 
                 the self.cache_dir attribute.
-            FileNotFoundError:
-                FileNotFoundError is raised if the lexicon_path attribute does not
-                point to a file.
-            json.JSONDecodeError:
-                json.JSONDecodeError is raised if the lexicon_path attribute points
-                to a file which incurs an error when trying to process it as a .json
-                and read the data.
             Exception:
                 Exception is raised when there is a general error that has occured
                 when trying to read the .json file specified by the lexicon_path
@@ -297,9 +291,11 @@ class VaderSentimentEngine(BaseEngine):
                 True is returned if the execute() function works as expected. 
 
         Raises:
+            TypeError:
+                TypeError is raised if the analyzer argument is empty.
             ValueError:
-                ValueError is raised if self.prompt cannot be accessed, or it is not a str
-                instance, or if the analyzer input is empty. 
+                ValueError is raised if self.prompt cannot be accessed or it is not a str
+                instance. 
             Exception:
                 Exception is raised if an error occured during the VADER sentiment analysis.
         """
