@@ -1,6 +1,8 @@
 from os import path, makedirs
 import bittensor as bt
 from llm_defender.base.engine import BaseEngine
+import spacy 
+
 
 class PIIEngine(BaseEngine):
 
@@ -8,6 +10,9 @@ class PIIEngine(BaseEngine):
     def __init__(self, prompt: str = None, name = 'engine:pii'):
         super().__init__(name=name)
         self.prompt = prompt
+        self.custom_regex = {
+            "ETH_adr": r"(0x[a-f0-9]{40})"
+        }
 
     def _calculate_confidence(self):
         if self.output['outcome'] == 'PIIDetected':
@@ -28,7 +33,12 @@ class PIIEngine(BaseEngine):
 
     def prepare(self):
 
+        
+
     def initialize(self):
+        spacy_model = spacy.load("en_core_web_sm")
+
+
 
     def execute(self):
 
