@@ -49,22 +49,35 @@ def run(args):
                 repo.refs[args.branch].commit
                 != repo.refs[f"origin/{args.branch}"].commit
             ):
-                # Check if auto_updater.py has been changed
-                current_hash = _calculate_hash("./scripts/auto_updater.py")
+                
+                # Checks for auto_updater.py, llm_defender_module or run.sh being changed 
+                restart_pm2_instances = False 
+                # Calculate existing hashes
+                current_auto_updater_hash = _calculate_hash("./scripts/auto_updater.py")
+                current_llm_defender_module_hash = _calculate_hash("./llm_defender/")
+                current_run_sh_hash = _calculate_hash('./scripts/run.sh')
+                # Pull new branches 
                 logger.info("Changes detected in remote branch: %s", args.branch)
                 logger.info("Pulling remote branch: %s", args.branch)
                 origin.pull(args.branch)
                 repo.git.checkout(args.branch)
                 logger.info("Checked out to branch: %s", args.branch)
-
-                new_hash = _calculate_hash("./scripts/auto_updater.py")
-                if current_hash != new_hash:
+                # Get new hashes after pulling
+                new_auto_updater_hash = _calculate_hash("./scripts/auto_updater.py")
+                new_llm_defender_module_hash = _calculate_hash("./llm_defender/")
+                new_run_sh_hash = _calculate_hash('./scripts/run.sh')
+                # If auto_updater.py is modified
+                if (current_auto_updater_hash != new_auto_updater_hash):
+                    restart_pm2_instances = True
                     logger.info(
                         "Auto updater hash has changed. Old hash: %s, new hash: %s. Setting should exit to True.",
-                        current_hash,
-                        new_hash,
+                        current_auto_updater_hash,
+                        new_auto_updater_hash,
                     )
                     should_exit = True
+                # If llm_defender module or run.sh is modified
+                if (current_llm_defender_module_hash != new_llm_defender_module_hash) or (current_run_sh_hash != new_run_sh_hash):
+                    restart_pm2_instances = True 
 
                 # Install package
                 run_args = "--install_only 1"
@@ -76,24 +89,25 @@ def run(args):
 
                 logger.info('Installing the new subnet version')
                 subprocess.run('pip install -e . && pip uninstall -y uvloop', check=True, shell=True)
-                
-                # Restart pm2 instances
-                for instance_name in args.pm2_instance_names:
-                    try:
-                        sleep_duration = random.randint(15, 90)
-                        logger.info(
-                            "Sleeping for %s seconds before restart", sleep_duration
-                        )
-                        sleep(sleep_duration)
-                        subprocess.run(
-                            f"git checkout {args.branch} && pm2 restart {instance_name}",
-                            check=True,
-                            shell=True,
-                        )
-                        logger.info("Restarted PM2 process: %s", instance_name)
-                    
-                    except subprocess.CalledProcessError as e:
-                        logger.error("Unable to restart PM2 instance: %s", e)
+
+                if restart_pm2_instances:
+                    # Restart pm2 instances
+                    for instance_name in args.pm2_instance_names:
+                        try:
+                            sleep_duration = random.randint(15, 90)
+                            logger.info(
+                                "Sleeping for %s seconds before restart", sleep_duration
+                            )
+                            sleep(sleep_duration)
+                            subprocess.run(
+                                f"git checkout {args.branch} && pm2 restart {instance_name}",
+                                check=True,
+                                shell=True,
+                            )
+                            logger.info("Restarted PM2 process: %s", instance_name)
+                        
+                        except subprocess.CalledProcessError as e:
+                            logger.error("Unable to restart PM2 instance: %s", e)
 
                 logger.info("All processes have been restarted")
             else:
