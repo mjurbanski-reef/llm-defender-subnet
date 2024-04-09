@@ -2,7 +2,6 @@ import bittensor as bt
 from math import log, sqrt
 import copy 
 import torch
-import pandas as pd 
 import matplotlib.pyplot as plt
 
 # Score generator
@@ -30,7 +29,6 @@ def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, t
     
     return scores
 
-
 def normalize_and_bin(unweighted_scores):
     """Normalizes miner scores according to a distribution and then bins them"""
 
@@ -53,7 +51,10 @@ def normalize_and_bin(unweighted_scores):
     for i, score in enumerate(unweighted_scores):
 
         # calculate normalized score
-        normalized_score = abs(log(score))
+        if float(score) == 0.0:
+            normalized_score = 10
+        else:
+            normalized_score = abs(log(score))
         
         # calculate binned score and update scores
         binned_score = 0.0
@@ -66,7 +67,6 @@ def normalize_and_bin(unweighted_scores):
     print(f"Normalized and binned scores: {scores}")
         
     return scores
-
 
 def plot_normalize_and_bin_process(dist_func, dist_x_range_low, dist_x_range_high, plot_title, tensor_length = 256):
 
@@ -98,7 +98,6 @@ def plot_normalize_and_bin_process(dist_func, dist_x_range_low, dist_x_range_hig
 
     plt.show()
 
-
 def plot_all_normalize_and_bin_processes():
 
     linear_scores = lambda x: x 
@@ -120,9 +119,11 @@ def plot_all_normalize_and_bin_processes():
 
     for lambda_func, title in zip(lambdas_iterable, plot_titles):
         plot_normalize_and_bin_process(dist_func = lambda_func, 
-                                       dist_x_range_low = 0.01, 
-                                       dist_x_range_high = 1.0, 
+                                       dist_x_range_low = 0, 
+                                       dist_x_range_high = 1, 
                                        plot_title = title)
+        
+
         
 if __name__ == '__main__':
 
