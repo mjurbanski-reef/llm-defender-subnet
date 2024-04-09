@@ -277,9 +277,9 @@ def plot_all_n_dim_binning_processes():
     ]
 
     plot_titles = [
-        "Effect of Binning on Score Dist: x",
-        "Effect of Binning on Score Dist: x^2",
-        "Effect of Binning on Score Dist: sqrt(x)"
+        "Effect of Dimensional Averaging & Binning on Score Dist: x",
+        "Effect of Dimensional Averaging & Binning on Score Dist: x^2",
+        "Effect of Dimensional Averaging & Binning on Score Dist: sqrt(x)"
     ]
     
     range_lows = [
@@ -398,9 +398,9 @@ def plot_all_n_dim_and_normalization_binning_processes():
     ]
 
     plot_titles = [
-        "Effect of Binning on Score Dist: x",
-        "Effect of Binning on Score Dist: x^2",
-        "Effect of Binning on Score Dist: sqrt(x)"
+        "Effect of Dimensional Averaging, Normalization & Binning on Score Dist: x",
+        "Effect of Dimensional Averaging, Normalization & Binning on Score Dist: x^2",
+        "Effect of Dimensional Averaging, Normalization & Binning on Score Dist: sqrt(x)"
     ]
     
     range_lows = [
