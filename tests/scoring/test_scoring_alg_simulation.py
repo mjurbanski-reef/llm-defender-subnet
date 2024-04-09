@@ -117,10 +117,22 @@ def plot_all_normalize_and_bin_processes():
         "Effect of Binning on Score Dist: sqrt(x)"
     ]
 
-    for lambda_func, title in zip(lambdas_iterable, plot_titles):
+    range_lows = [
+        0.3,
+        0.5,
+        0.0
+    ]
+
+    range_highs = [
+        1.0,
+        1.0,
+        1.0
+    ]
+
+    for lambda_func, title, range_low, range_high in zip(lambdas_iterable, plot_titles, range_lows, range_highs):
         plot_normalize_and_bin_process(dist_func = lambda_func, 
-                                       dist_x_range_low = 0, 
-                                       dist_x_range_high = 1, 
+                                       dist_x_range_low = range_low, 
+                                       dist_x_range_high = range_high, 
                                        plot_title = title)
         
 # Score generator
