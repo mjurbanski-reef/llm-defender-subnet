@@ -112,9 +112,9 @@ def plot_all_normalize_and_bin_processes():
     ]
 
     plot_titles = [
-        "Effect of Binning on Score Dist: x",
-        "Effect of Binning on Score Dist: x^2",
-        "Effect of Binning on Score Dist: sqrt(x)"
+        "Effect of Normalization & Binning on Score Dist: x",
+        "Effect of Normalization & Binning on Score Dist: x^2",
+        "Effect of Normalization & Binning on Score Dist: sqrt(x)"
     ]
 
     range_lows = [
