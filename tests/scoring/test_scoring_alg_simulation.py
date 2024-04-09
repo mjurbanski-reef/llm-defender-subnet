@@ -311,7 +311,7 @@ def n_dim_and_normalization_binning(scores_dict):
     for uid_avgs in avgs_for_all_uids:
         avg_for_all_uids.append((sum(uid_avgs) / len(uid_avgs)))
 
-        score_bins = [ #[range_low, range_high, binned_score]
+    score_bins = [ #[range_low, range_high, binned_score]
         [0, 0.03, 1],
         [0.03, 0.11, 0.9],
         [0.11, 0.22, 0.8],
