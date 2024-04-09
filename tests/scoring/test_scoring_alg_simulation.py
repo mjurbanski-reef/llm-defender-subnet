@@ -1,10 +1,11 @@
 import bittensor as bt 
-from math import log 
+from math import log, sqrt
 import copy 
 import torch
 import pandas as pd 
-import seaborn as sns 
+import matplotlib.pyplot as plt
 
+# Score generator
 def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=256):
     """
     Generates a torch tensor of size tensor_length using lambda function dist_func, 
@@ -24,9 +25,11 @@ def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, t
     x_values = torch.linspace(dist_x_range_low, dist_x_range_high, tensor_length)
     
     # Apply the distribution function to each value in x_values
-    scores = dist_func(x_values)
+    scores = torch.tensor([dist_func(x) for x in x_values])
+    print(f"Unweighted scores: {scores}")
     
     return scores
+
 
 def normalize_and_bin(unweighted_scores):
     """Normalizes miner scores according to a distribution and then bins them"""
@@ -59,6 +62,70 @@ def normalize_and_bin(unweighted_scores):
                 binned_score = score_bin[2]
 
         scores[i] = binned_score
+
+    print(f"Normalized and binned scores: {scores}")
         
     return scores
-                
+
+
+def plot_normalize_and_bin_process(dist_func, dist_x_range_low, dist_x_range_high, plot_title, tensor_length = 256):
+
+    unweighted_scores = generate_unweighted_scores(
+        dist_func=dist_func, 
+        dist_x_range_low=dist_x_range_low, 
+        dist_x_range_high=dist_x_range_high, 
+        tensor_length=tensor_length)     
+    scores = normalize_and_bin(unweighted_scores)
+    unweighted_scores, scores = unweighted_scores.tolist(), scores.tolist()
+    uids = [x for x, _ in enumerate(scores)]
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(5, 3))
+    # Plotting on the first subplot
+    axes[0].plot(uids, unweighted_scores)
+    axes[0].set_title("Current Score Distribution")  # Title for the first subplot
+    axes[0].set_xlabel("UID")  # X-axis label for the first subplot
+    axes[0].set_ylabel("Score")  # Y-axis label for the first subplot
+
+    # Plotting on the second subplot
+    axes[1].plot(uids, scores)
+    axes[1].set_title("Binned Score Distribution")  # Title for the second subplot
+    axes[1].set_xlabel("UID")  # X-axis label for the second subplot
+    axes[1].set_ylabel("Score")  # Y-axis label for the second subplot
+
+    # Adding a title for the entire figure
+    fig.suptitle(plot_title)
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to make room for the figure-wide title
+
+    plt.show()
+
+
+def plot_all_normalize_and_bin_processes():
+
+    linear_scores = lambda x: x 
+    quadratic_scores = lambda x: x * x
+    sqrt_scores = lambda x: sqrt(x)
+
+    lambdas_iterable = [
+        linear_scores,
+        quadratic_scores,
+        sqrt_scores
+    ]
+
+    plot_titles = [
+        "Effect of Binning on Score Dist: x",
+        "Effect of Binning on Score Dist: x^2",
+        "Effect of Binning on Score Dist: sqrt(x)"
+    ]
+
+
+    for lambda_func, title in zip(lambdas_iterable, plot_titles):
+        plot_normalize_and_bin_process(dist_func = lambda_func, 
+                                       dist_x_range_low = 0.01, 
+                                       dist_x_range_high = 1.0, 
+                                       plot_title = title)
+        
+if __name__ == '__main__':
+
+    print("Now testing the normalize & bin process:")
+
+    plot_all_normalize_and_bin_processes()
