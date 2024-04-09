@@ -24,7 +24,6 @@ def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, t
     
     # Apply the distribution function to each value in x_values
     scores = torch.tensor([dist_func(x) for x in x_values])
-    print(f"Unweighted scores: {scores}")
     
     return scores
 
@@ -62,8 +61,6 @@ def normalize_and_bin(unweighted_scores):
                 binned_score = score_bin[2]
 
         scores[i] = binned_score
-
-    print(f"Normalized and binned scores: {scores}")
         
     return scores
 
@@ -160,8 +157,6 @@ def generate_scrambled_unweighted_scores(dist_func, dist_x_range_low, dist_x_ran
 
     # Use the permuted indices to scramble the scores
     scrambled_scores = scores[permuted_indices]
-
-    print(f"Unweighted scores: {scrambled_scores}")
     
     return scrambled_scores.tolist()
         
@@ -179,8 +174,6 @@ def get_unweighted_scores_per_analyzer(dist_func, dist_x_range_low, dist_x_range
     for analyzer in analyzers:
 
         scores_dict[analyzer] = generate_scrambled_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=tensor_length)
-
-    print(f"Unweighted scores per analyzer: {scores_dict}")
 
     return scores_dict
         
@@ -230,8 +223,6 @@ def n_dim_binning(scores_dict):
                 binned_score = score_bin[2]
 
         scores.append(binned_score)
-
-    print(f"avg_for_all_uids: {avg_for_all_uids}")
 
     return scores, avg_for_all_uids
 
@@ -351,8 +342,6 @@ def n_dim_and_normalization_binning(scores_dict):
                 binned_score = score_bin[2]
 
         scores.append(binned_score)
-
-    print(f"avg_for_all_uids: {avg_for_all_uids}")
 
     return scores, avg_for_all_uids
 
