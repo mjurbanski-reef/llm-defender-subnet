@@ -2,6 +2,20 @@ from math import log, sqrt
 import copy 
 import torch
 import matplotlib.pyplot as plt
+import bittensor as bt 
+import argparse 
+
+# query miner weights from metagraph 
+def query_miner_weights_from_metagraph():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--netuid", type=int, default=14)
+    parser.add_argument("--subtensor.network", type=str, default='finney')
+    config = bt.config(parser=parser)
+    subtensor = bt.subtensor(config=config)
+    metagraph = subtensor.metagraph(config.netuid)
+    # modify this line depending on what you want to query (B,C,D,E,I,R,S,T,Tv,W)
+    query = metagraph.W.float()
+    return query
 
 # abs(ln(x)) normalization and binning
 def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=256):
@@ -410,11 +424,15 @@ def plot_all_n_dim_and_normalization_binning_processes():
 
 if __name__ == '__main__':
 
-    print("Now testing the normalize & bin process:")
-    plot_all_normalize_and_bin_processes()
+    if False:
 
-    print("Now testing the n-dimensional binning process:")
-    plot_all_n_dim_binning_processes()
+        print("Now testing the normalize & bin process:")
+        plot_all_normalize_and_bin_processes()
 
-    print("Now testing the normalized, n-dimensional binning process:")
-    plot_all_n_dim_and_normalization_binning_processes()
+        print("Now testing the n-dimensional binning process:")
+        plot_all_n_dim_binning_processes()
+
+        print("Now testing the normalized, n-dimensional binning process:")
+        plot_all_n_dim_and_normalization_binning_processes()
+
+    print(query_miner_weights_from_metagraph())
