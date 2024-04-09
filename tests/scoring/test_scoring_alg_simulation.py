@@ -1,11 +1,9 @@
-import bittensor as bt 
 from math import log, sqrt
 import copy 
 import torch
 import matplotlib.pyplot as plt
-from itertools import combinations
 
-# Score generator
+# abs(ln(x)) normalization and binning
 def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=256):
     """
     Generates a torch tensor of size tensor_length using lambda function dist_func, 
@@ -134,8 +132,8 @@ def plot_all_normalize_and_bin_processes():
                                        dist_x_range_low = range_low, 
                                        dist_x_range_high = range_high, 
                                        plot_title = title)
-        
-# Score generator
+
+# multi-dimensional averages and binning
 def generate_scrambled_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=256):
     """
     Generates a torch tensor of size tensor_length using lambda function dist_func, 
@@ -299,7 +297,8 @@ def plot_all_n_dim_binning_processes():
                                    dist_x_range_low = range_low, 
                                    dist_x_range_high = range_high, 
                                    plot_title = title)
-        
+
+# abs(ln(x)) normalization, multi-dimensional averages and binning
 def n_dim_and_normalization_binning(scores_dict):
 
     avgs_for_all_uids = []
@@ -356,7 +355,6 @@ def n_dim_and_normalization_binning(scores_dict):
     print(f"avg_for_all_uids: {avg_for_all_uids}")
 
     return scores, avg_for_all_uids
-
 
 def plot_n_dim_and_normalization_binning_process(dist_func, dist_x_range_low, dist_x_range_high, plot_title):
 
@@ -422,8 +420,6 @@ def plot_all_n_dim_and_normalization_binning_processes():
                                                      plot_title = title)
 
 if __name__ == '__main__':
-
-
 
     print("Now testing the normalize & bin process:")
     plot_all_normalize_and_bin_processes()
