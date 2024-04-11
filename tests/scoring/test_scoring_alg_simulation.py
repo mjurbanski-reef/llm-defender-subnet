@@ -504,8 +504,6 @@ def plot_all_processes_with_actual_dist():
     for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
         scores_dict[key] = random.shuffle(get_static_miner_weights_dist().tolist(), len)
 
-    print(scores_dict)
-
     scores, unweighted_scores = n_dim_binning(scores_dict)
     new_unweighted_scores = sorted(unweighted_scores)
     new_scores = sorted(scores)
@@ -566,13 +564,10 @@ if __name__ == '__main__':
 
     if do_all_simulations:
 
-        print("Now testing the normalize & bin process:")
         plot_all_normalize_and_bin_processes()
 
-        print("Now testing the n-dimensional binning process:")
         plot_all_n_dim_binning_processes()
 
-        print("Now testing the normalized, n-dimensional binning process:")
         plot_all_n_dim_and_normalization_binning_processes()
 
     plot_all_processes_with_actual_dist()
