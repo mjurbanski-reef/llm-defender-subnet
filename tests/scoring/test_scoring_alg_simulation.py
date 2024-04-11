@@ -6,64 +6,7 @@ import bittensor as bt
 import argparse 
 import random
 
-# query miner weights from metagraph 
-def query_miner_weights_from_metagraph():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--netuid", type=int, default=14)
-    parser.add_argument("--subtensor.network", type=str, default='finney')
-    config = bt.config(parser=parser)
-    subtensor = bt.subtensor(config=config, network = 'finney')
-    metagraph = subtensor.metagraph(config.netuid, lite=False)
-    metagraph.sync(subtensor=subtensor)
-    # modify this line depending on what you want to query (B,C,D,E,I,R,S,T,Tv,W)
-    query = metagraph.W
-    for q in query:
-        print(q)
-    return query
-
-def normalize_list(weights):
-
-    max_weight = max(weights)
-    normalized_weights = []
-    for weight in weights: 
-        if weight != 0.0 or weight != 0:
-            normalized_weights.append((weight / max_weight))
-    return torch.tensor(sorted(normalized_weights))
-
-def get_static_miner_weights_dist():
-    weights = [
-        0.0042, 0.0042, 0.0042, 0.0042, 0.0000, 0.0042, 0.0000, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0042, 0.0042, 0.0043,
-        0.0043, 0.0016, 0.0043, 0.0000, 0.0043, 0.0043, 0.0000, 0.0044, 0.0043,
-        0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043,
-        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0039, 0.0042, 0.0043,
-        0.0000, 0.0042, 0.0043, 0.0000, 0.0042, 0.0043, 0.0043, 0.0042, 0.0042,
-        0.0043, 0.0000, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0000,
-        0.0043, 0.0043, 0.0043, 0.0000, 0.0044, 0.0000, 0.0043, 0.0043, 0.0043,
-        0.0000, 0.0043, 0.0044, 0.0044, 0.0044, 0.0042, 0.0042, 0.0042, 0.0044,
-        0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0000, 0.0043, 0.0039,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
-        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
-        0.0042, 0.0043, 0.0042, 0.0043, 0.0042, 0.0043, 0.0000, 0.0039, 0.0043,
-        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0039, 0.0043, 0.0043,
-        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0043,
-        0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0000, 0.0043, 0.0045, 0.0000,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0042,
-        0.0043, 0.0042, 0.0043, 0.0000, 0.0043, 0.0000, 0.0043, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0000, 0.0043,
-        0.0043, 0.0043, 0.0000, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0000, 0.0000, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
-        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0045, 0.0043,
-        0.0039, 0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0045, 0.0043, 0.0043,
-        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043,
-        0.0042, 0.0043, 0.0043, 0.0043
-    ]
-
-    return torch.tensor(normalize_list(weights))
+# SIMULATIONS FOR POTENTIAL NEW SCORING ALGORITHMS
 
 # abs(ln(x)) normalization and binning
 def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=256):
@@ -470,6 +413,65 @@ def plot_all_n_dim_and_normalization_binning_processes():
                                                      dist_x_range_high = range_high, 
                                                      plot_title = title)
 
+# plot all with real miner distribution
+def query_miner_weights_from_metagraph():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--netuid", type=int, default=14)
+    parser.add_argument("--subtensor.network", type=str, default='finney')
+    config = bt.config(parser=parser)
+    subtensor = bt.subtensor(config=config, network = 'finney')
+    metagraph = subtensor.metagraph(config.netuid, lite=False)
+    metagraph.sync(subtensor=subtensor)
+    # modify this line depending on what you want to query (B,C,D,E,I,R,S,T,Tv,W)
+    query = metagraph.W
+    for q in query:
+        print(q)
+    return query
+
+def normalize_list(weights):
+
+    max_weight = max(weights)
+    normalized_weights = []
+    for weight in weights: 
+        if weight != 0.0 or weight != 0:
+            normalized_weights.append((weight / max_weight))
+    return torch.tensor(sorted(normalized_weights))
+
+def get_static_miner_weights_dist():
+    weights = [
+        0.0042, 0.0042, 0.0042, 0.0042, 0.0000, 0.0042, 0.0000, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0042, 0.0042, 0.0043,
+        0.0043, 0.0016, 0.0043, 0.0000, 0.0043, 0.0043, 0.0000, 0.0044, 0.0043,
+        0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0039, 0.0042, 0.0043,
+        0.0000, 0.0042, 0.0043, 0.0000, 0.0042, 0.0043, 0.0043, 0.0042, 0.0042,
+        0.0043, 0.0000, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0000,
+        0.0043, 0.0043, 0.0043, 0.0000, 0.0044, 0.0000, 0.0043, 0.0043, 0.0043,
+        0.0000, 0.0043, 0.0044, 0.0044, 0.0044, 0.0042, 0.0042, 0.0042, 0.0044,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0000, 0.0043, 0.0039,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0042, 0.0043, 0.0042, 0.0043, 0.0000, 0.0039, 0.0043,
+        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0039, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0043,
+        0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0000, 0.0043, 0.0045, 0.0000,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0042,
+        0.0043, 0.0042, 0.0043, 0.0000, 0.0043, 0.0000, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0000, 0.0043,
+        0.0043, 0.0043, 0.0000, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0000, 0.0000, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0045, 0.0043,
+        0.0039, 0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0045, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043
+    ]
+
+    return torch.tensor(normalize_list(weights))
+
 def plot_all_processes_with_actual_dist():
 
     # 1. Normalization & Binning 
@@ -502,7 +504,7 @@ def plot_all_processes_with_actual_dist():
 
     scores_dict = {}
     for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
-        scores_dict[key] = random.shuffle(get_static_miner_weights_dist().tolist(), len)
+        scores_dict[key] = get_static_miner_weights_dist().tolist()
 
     scores, unweighted_scores = n_dim_binning(scores_dict)
     new_unweighted_scores = sorted(unweighted_scores)
@@ -556,7 +558,6 @@ def plot_all_processes_with_actual_dist():
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to make room for the figure-wide title
 
     plt.show()
-
 
 if __name__ == '__main__':
 
