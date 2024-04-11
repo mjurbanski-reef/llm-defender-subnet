@@ -562,7 +562,9 @@ def plot_all_processes_with_actual_dist():
 
 if __name__ == '__main__':
 
-    if False:
+    do_all_simulations = False
+
+    if do_all_simulations:
 
         print("Now testing the normalize & bin process:")
         plot_all_normalize_and_bin_processes()
