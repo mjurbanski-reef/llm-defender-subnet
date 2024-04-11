@@ -4,6 +4,7 @@ import torch
 import matplotlib.pyplot as plt
 import bittensor as bt 
 import argparse 
+import random
 
 # query miner weights from metagraph 
 def query_miner_weights_from_metagraph():
@@ -11,11 +12,58 @@ def query_miner_weights_from_metagraph():
     parser.add_argument("--netuid", type=int, default=14)
     parser.add_argument("--subtensor.network", type=str, default='finney')
     config = bt.config(parser=parser)
-    subtensor = bt.subtensor(config=config)
-    metagraph = subtensor.metagraph(config.netuid)
+    subtensor = bt.subtensor(config=config, network = 'finney')
+    metagraph = subtensor.metagraph(config.netuid, lite=False)
+    metagraph.sync(subtensor=subtensor)
     # modify this line depending on what you want to query (B,C,D,E,I,R,S,T,Tv,W)
-    query = metagraph.W.float()
+    query = metagraph.W
+    for q in query:
+        print(q)
     return query
+
+def normalize_list(weights):
+
+    max_weight = max(weights)
+    normalized_weights = []
+    for weight in weights: 
+        if weight != 0.0 or weight != 0:
+            normalized_weights.append((weight / max_weight))
+    return torch.tensor(sorted(normalized_weights))
+
+def get_static_miner_weights_dist():
+    weights = [
+        0.0042, 0.0042, 0.0042, 0.0042, 0.0000, 0.0042, 0.0000, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0042, 0.0042, 0.0043,
+        0.0043, 0.0016, 0.0043, 0.0000, 0.0043, 0.0043, 0.0000, 0.0044, 0.0043,
+        0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0039, 0.0042, 0.0043,
+        0.0000, 0.0042, 0.0043, 0.0000, 0.0042, 0.0043, 0.0043, 0.0042, 0.0042,
+        0.0043, 0.0000, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0000,
+        0.0043, 0.0043, 0.0043, 0.0000, 0.0044, 0.0000, 0.0043, 0.0043, 0.0043,
+        0.0000, 0.0043, 0.0044, 0.0044, 0.0044, 0.0042, 0.0042, 0.0042, 0.0044,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0000, 0.0043, 0.0039,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0042, 0.0043, 0.0042, 0.0043, 0.0000, 0.0039, 0.0043,
+        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0039, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0043,
+        0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0000, 0.0043, 0.0045, 0.0000,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0042,
+        0.0043, 0.0042, 0.0043, 0.0000, 0.0043, 0.0000, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0042, 0.0043, 0.0000, 0.0043,
+        0.0043, 0.0043, 0.0000, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0000, 0.0000, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0042, 0.0043, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0045, 0.0043,
+        0.0039, 0.0042, 0.0043, 0.0043, 0.0043, 0.0043, 0.0045, 0.0043, 0.0043,
+        0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043,
+        0.0042, 0.0043, 0.0043, 0.0043
+    ]
+
+    return torch.tensor(normalize_list(weights))
 
 # abs(ln(x)) normalization and binning
 def generate_unweighted_scores(dist_func, dist_x_range_low, dist_x_range_high, tensor_length=256):
@@ -422,6 +470,96 @@ def plot_all_n_dim_and_normalization_binning_processes():
                                                      dist_x_range_high = range_high, 
                                                      plot_title = title)
 
+def plot_all_processes_with_actual_dist():
+
+    # 1. Normalization & Binning 
+
+    unweighted_scores = get_static_miner_weights_dist() 
+    scores = normalize_and_bin(unweighted_scores)
+    unweighted_scores, scores = unweighted_scores.tolist(), scores.tolist()
+    uids = [x for x, _ in enumerate(scores)]
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(5, 3))
+    # Plotting on the first subplot
+    axes[0].plot(uids, unweighted_scores)
+    axes[0].set_title("Current Score Distribution")  # Title for the first subplot
+    axes[0].set_xlabel("UID")  # X-axis label for the first subplot
+    axes[0].set_ylabel("Score")  # Y-axis label for the first subplot
+
+    # Plotting on the second subplot
+    axes[1].plot(uids, scores)
+    axes[1].set_title("Binned Score Distribution")  # Title for the second subplot
+    axes[1].set_xlabel("UID")  # X-axis label for the second subplot
+    axes[1].set_ylabel("Score")  # Y-axis label for the second subplot
+
+    # Adding a title for the entire figure
+    fig.suptitle("Effect of Normalization & Binning on Score Dist: Miner Distribution")
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to make room for the figure-wide title
+
+    plt.show()
+
+    # 2. N-Dimensional Averaging
+
+    scores_dict = {}
+    for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
+        scores_dict[key] = random.shuffle(get_static_miner_weights_dist().tolist(), len)
+
+    print(scores_dict)
+
+    scores, unweighted_scores = n_dim_binning(scores_dict)
+    new_unweighted_scores = sorted(unweighted_scores)
+    new_scores = sorted(scores)
+    uids = [x for x, _ in enumerate(scores)]
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(5, 3))
+    # Plotting on the first subplot
+    axes[0].plot(uids, new_unweighted_scores)
+    axes[0].set_title("Current Score Distribution")  # Title for the first subplot
+    axes[0].set_xlabel("UID")  # X-axis label for the first subplot
+    axes[0].set_ylabel("Score")  # Y-axis label for the first subplot
+
+    # Plotting on the second subplot
+    axes[1].plot(uids, new_scores)
+    axes[1].set_title("Binned Score Distribution")  # Title for the second subplot
+    axes[1].set_xlabel("UID")  # X-axis label for the second subplot
+    axes[1].set_ylabel("Score")  # Y-axis label for the second subplot
+
+    # Adding a title for the entire figure
+    fig.suptitle("Effect of N-Dimensional Averaging & Binning on Score Dist: Miner Distribution")
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to make room for the figure-wide title
+
+    plt.show()
+
+    # 3. N-Dimensional Averaging, Normalization & Binning 
+    scores_dict = {}
+    for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
+        scores_dict[key] = get_static_miner_weights_dist().tolist()
+
+    scores, unweighted_scores = n_dim_and_normalization_binning(scores_dict)
+    new_unweighted_scores = sorted(unweighted_scores)
+    new_scores = sorted(scores)
+    uids = [x for x, _ in enumerate(scores)]
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(5, 3))
+    # Plotting on the first subplot
+    axes[0].plot(uids, new_unweighted_scores)
+    axes[0].set_title("Current Score Distribution")  # Title for the first subplot
+    axes[0].set_xlabel("UID")  # X-axis label for the first subplot
+    axes[0].set_ylabel("Score")  # Y-axis label for the first subplot
+
+    # Plotting on the second subplot
+    axes[1].plot(uids, new_scores)
+    axes[1].set_title("Normalized & Binned Score Distribution")  # Title for the second subplot
+    axes[1].set_xlabel("UID")  # X-axis label for the second subplot
+    axes[1].set_ylabel("Score")  # Y-axis label for the second subplot
+
+    # Adding a title for the entire figure
+    fig.suptitle("Effect of N-Dimensional Averaging, Normalization & Binning on Score Dist: Miner Distribution")
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to make room for the figure-wide title
+
+    plt.show()
+
+
 if __name__ == '__main__':
 
     if False:
@@ -435,4 +573,4 @@ if __name__ == '__main__':
         print("Now testing the normalized, n-dimensional binning process:")
         plot_all_n_dim_and_normalization_binning_processes()
 
-    print(query_miner_weights_from_metagraph())
+    plot_all_processes_with_actual_dist()
