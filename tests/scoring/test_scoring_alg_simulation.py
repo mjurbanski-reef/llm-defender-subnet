@@ -433,8 +433,7 @@ def normalize_list(weights):
     max_weight = max(weights)
     normalized_weights = []
     for weight in weights: 
-        if weight != 0.0 or weight != 0:
-            normalized_weights.append((weight / max_weight))
+        normalized_weights.append((weight / max_weight))
     return torch.tensor(sorted(normalized_weights))
 
 def get_static_miner_weights_dist():
@@ -505,7 +504,7 @@ def plot_all_processes_with_actual_dist():
     scores_dict = {}
     for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
         scores_dict[key] = get_static_miner_weights_dist().tolist()
-
+    print(scores_dict)
     scores, unweighted_scores = n_dim_binning(scores_dict)
     new_unweighted_scores = sorted(unweighted_scores)
     new_scores = sorted(scores)
@@ -534,6 +533,9 @@ def plot_all_processes_with_actual_dist():
     scores_dict = {}
     for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
         scores_dict[key] = get_static_miner_weights_dist().tolist()
+
+    for key in scores_dict:
+        scores_dict[key] = random.shuffle(scores_dict[key])
 
     scores, unweighted_scores = n_dim_and_normalization_binning(scores_dict)
     new_unweighted_scores = sorted(unweighted_scores)
