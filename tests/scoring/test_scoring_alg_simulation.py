@@ -503,8 +503,10 @@ def plot_all_processes_with_actual_dist():
 
     scores_dict = {}
     for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
-        scores_dict[key] = get_static_miner_weights_dist().tolist()
-    print(scores_dict)
+        weights_list = get_static_miner_weights_dist().tolist()
+        random.shuffle(weights_list)
+        scores_dict[key] = weights_list
+
     scores, unweighted_scores = n_dim_binning(scores_dict)
     new_unweighted_scores = sorted(unweighted_scores)
     new_scores = sorted(scores)
@@ -532,10 +534,9 @@ def plot_all_processes_with_actual_dist():
     # 3. N-Dimensional Averaging, Normalization & Binning 
     scores_dict = {}
     for key in ['Prompt Injection', 'Sensitive Information', 'Third Analyzer', 'Fourth Analyzer']:
-        scores_dict[key] = get_static_miner_weights_dist().tolist()
-
-    for key in scores_dict:
-        scores_dict[key] = random.shuffle(scores_dict[key])
+        weights_list = get_static_miner_weights_dist().tolist()
+        random.shuffle(weights_list)
+        scores_dict[key] = weights_list
 
     scores, unweighted_scores = n_dim_and_normalization_binning(scores_dict)
     new_unweighted_scores = sorted(unweighted_scores)
